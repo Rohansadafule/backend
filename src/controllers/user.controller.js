@@ -6,9 +6,9 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 
 const generateAccessRefreshToken = async (UserId) => {
     try {
-        const user = user.findById(UserId)
-        const accessToken = user.generateAccessToken
-        const refreshToken = user.generateRefreshToken
+        const user = await User.findById(UserId)
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
 
         user.refreshToken = refreshToken
         await user.save({ validateBeforeSave: false })
@@ -84,12 +84,12 @@ const registerUser = asyncHandler(async (req, res) => {
 const loginUser = asyncHandler(async (req, res) => {
     const { username, email, password } = req.body
 
-    if (!username || !email) {
+    if (!username && !email) {
         throw new ApiError(400, "username or Email is required")
     }
 
     const user = await User.findOne({
-        $or: [{ username }, email]
+        $or: [{ username }, { email }]
     })
 
     if (!user) {
@@ -136,8 +136,8 @@ const logoutUser = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .clearCooki("accessToken")
-        .clearCooki("refreshToken")
+        .clearCookie("accessToken")
+        .clearCookie("refreshToken")
         .json(new ApiResponse(200, {}, "User logOut Successfully"))
 })
 
